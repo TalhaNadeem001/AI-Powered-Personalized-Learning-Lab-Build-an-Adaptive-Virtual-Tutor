@@ -3,59 +3,156 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chatbot</title>
+    <title>Virtual Tutor</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #eef2f5;
+        margin: 0;
+        padding: 0;
+      }
+
       .chat-container {
         max-width: 600px;
-        margin: 50px auto;
-        border: 1px solid #ddd;
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #f9f9f9;
+        margin: 60px auto;
+        padding: 30px;
+        border-radius: 12px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        position: relative;
       }
-      .chat-box {
-        height: 300px;
-        overflow-y: scroll;
-        border: 1px solid #ccc;
+
+      .chat-container h2 {
+        text-align: center;
         margin-bottom: 20px;
-        padding: 10px;
-        background-color: #fff;
+        color: #333;
       }
+
+      .chat-box {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* left by default */
+        height: 350px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #fdfdfd;
+        margin-bottom: 20px;
+      }
+
       .user-message,
       .bot-message {
+        display: inline-block; /* shrink to fit content */
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 75%; /* still limit width for longer messages */
+        word-wrap: break-word;
         margin: 10px 0;
+        clear: both;
       }
+
       .user-message {
+        background-color: #d1e7ff;
+        color: #0c3c78;
+        margin-left: auto;
         text-align: right;
-        font-weight: bold;
       }
+
       .bot-message {
+        background-color: #f0f0f0;
+        color: #333;
+        margin-right: auto;
         text-align: left;
-        font-style: italic;
       }
+
+      #chat-form {
+        display: flex;
+        gap: 10px;
+      }
+
       input[type="text"] {
-        width: 80%;
-        padding: 10px;
+        flex-grow: 1;
+        padding: 12px;
         border: 1px solid #ccc;
-        border-radius: 5px;
+        border-radius: 8px;
+        font-size: 16px;
       }
+
       button {
-        padding: 10px;
+        padding: 12px 20px;
         background-color: #007bff;
         color: white;
         border: none;
-        border-radius: 5px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      .logout-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: #dc3545;
+      }
+
+      .logout-button:hover {
+        background-color: #b02a37;
+      }
+
+      @media (max-width: 640px) {
+        .chat-container {
+          margin: 30px 10px;
+          padding: 20px;
+        }
+
+        #chat-form {
+          flex-direction: column;
+        }
+
+        input[type="text"] {
+          width: 100%;
+        }
+
+        button {
+          width: 100%;
+        }
+
+        .logout-button {
+          top: 10px;
+          right: 10px;
+          padding: 10px;
+          font-size: 14px;
+        }
       }
     </style>
   </head>
   <body>
     <div class="chat-container">
-      <h2>Chatbot</h2>
+      <h2>Virtual Tutor</h2>
+
+      <!-- Sign Out Button -->
+      <button
+        class="logout-button"
+        onclick="window.location.href='{% url 'logout' %}'"
+      >
+        Sign Out
+      </button>
+
+      <!-- Chat Box -->
       <div class="chat-box" id="chat-box">
-        <!-- Chat messages will appear here -->
+        <!-- Messages will appear here -->
       </div>
 
-      <!-- Chat form -->
+      <!-- Chat Input Form -->
       <form method="POST" id="chat-form">
         {% csrf_token %}
         <input
@@ -78,19 +175,18 @@
         chatBox.scrollTop = chatBox.scrollHeight;
       }
 
-      // Intercept the form submission and send the data via AJAX (using fetch)
       document
         .getElementById("chat-form")
         .addEventListener("submit", function (event) {
-          event.preventDefault(); // Prevent default form submission
+          event.preventDefault();
 
-          const userMessage = document.getElementById("user-message").value;
+          const userInput = document.getElementById("user-message");
+          const userMessage = userInput.value.trim();
           if (!userMessage) return;
 
-          appendMessage(userMessage, "user"); // Display the user's message
-          document.getElementById("user-message").value = ""; // Clear the input
+          appendMessage(userMessage, "user");
+          userInput.value = "";
 
-          // Send the message to the backend
           fetch("/chat/", {
             method: "POST",
             headers: {
@@ -104,7 +200,7 @@
             .then((response) => response.json())
             .then((data) => {
               const botMessage = data.response;
-              appendMessage(botMessage, "bot"); // Display the bot's response
+              appendMessage(botMessage, "bot");
             });
         });
     </script>
